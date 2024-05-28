@@ -10,7 +10,8 @@ yarn-error.log*
 build/Release
 
 # Dependency directories
-node_modules/
+*/venv/
+*/node_modules/
 jspm_packages/
 
 # Distribution directories

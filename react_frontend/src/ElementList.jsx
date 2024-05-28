@@ -1,9 +1,9 @@
 const ElementList = ({ elements, onDragStart, onDelete }) => {
   return (
     <div>
-      {elements.map((element) => (
+      {elements.map((element, i) => (
         <div
-          key={element.id}
+          key={i}
           draggable
           onDragStart={(e) => onDragStart(e, element)}
           style={{ margin: "10px", border: "1px solid black", padding: "10px" }}

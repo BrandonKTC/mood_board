@@ -1,44 +1,60 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useGlobalContext } from "./context";
 import Gallery from "./Gallery";
 import SearchForm from "./SearchForm";
 import WorkArea from "./WorkArea";
 import ElementList from "./ElementList";
+import axios from "axios";
 
 const App = () => {
   const { searchTerm } = useGlobalContext();
-  const [elements, setElements] = useState([
-    {
-      id: 1,
-      name: "cat",
-      src:
-        "https://images.unsplash.com/photo-1573865526739-10659fec78a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w1NzUyMDV8MHwxfHNlYXJjaHwyfHxjYXR8ZW58MHx8fHwxNzE2NzI5MTgyfDA&ixlib=rb-4.0.3&q=80&w=1080",
-    },
-    {
-      id: 2,
-      name: "dog",
-      src:
-        "https://images.unsplash.com/photo-1588943211346-0908a1fb0b01?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w1NzUyMDV8MHwxfHNlYXJjaHw5fHxkb2d8ZW58MHx8fHwxNzE2NzMzOTc3fDA&ixlib=rb-4.0.3&q=80&w=1080",
-    },
-  ]);
+  const [elements, setElements] = useState([{}]);
+
+  const fetchAPI = async () => {
+    const res = await axios.get("http://127.0.0.1:5000/elements");
+    setElements(res.data.elements);
+  };
+
+  useEffect(() => {
+    fetchAPI();
+  }, []);
 
   const handleDragStart = (e, item) => {
     e.dataTransfer.setData("item", JSON.stringify(item));
   };
 
-  const handleDrop = (e) => {
+  const handleDrop = async (e) => {
     e.preventDefault();
     const newItem = JSON.parse(e.dataTransfer.getData("item"));
-    setElements((prevElements) => [
-      ...prevElements,
-      { ...newItem, id: prevElements.length + 1 },
-    ]);
+
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:5000/elements",
+        newItem
+      );
+
+      setElements((prevElements) => [...prevElements, response.data]);
+    } catch (error) {
+      console.error("Erreur lors de la requête POST", error);
+    }
   };
 
-  const handleDelete = (id) => {
-    setElements((prevElements) =>
-      prevElements.filter((element) => element.id !== id)
-    );
+  const handleDelete = async (id) => {
+    try {
+      const response = await axios.delete(
+        `http://127.0.0.1:5000/elements/${id}`
+      );
+
+      if (response.status !== 204) {
+        throw new Error("Failed to delete element");
+      }
+
+      setElements((prevElements) =>
+        prevElements.filter((element) => element.id !== id)
+      );
+    } catch (error) {
+      console.error("Error:", error);
+    }
   };
 
   const handleDragOver = (e) => {
